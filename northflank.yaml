@@ -1,0 +1,50 @@
+# Northflank combined service — long-running web + copy worker in one process.
+# Set the env vars below in the Northflank dashboard (do not commit secrets).
+#
+# Required:
+#   DATABASE_URL            Postgres connection string (Northflank addon)
+#   GOOGLE_CLIENT_ID        Google Cloud OAuth client ID
+#   GOOGLE_CLIENT_SECRET    Google Cloud OAuth client secret
+#
+# Recommended:
+#   PUBLIC_BASE_URL         https://<your-northflank-host>
+#   GOOGLE_REDIRECT_URI     ${PUBLIC_BASE_URL}/api/google/callback
+#   DEST_FOLDER_NAME        Raw
+#   COPY_CONCURRENCY        5
+#   COPY_DAILY_BUDGET_GB    600
+#   LONG_RUNNING            1
+#
+# Google Cloud Console → OAuth client → Authorized redirect URIs:
+#   https://<your-host>/api/google/callback
+#
+apiVersion: v1
+kind: CombinedService
+metadata:
+  name: raw-copy
+spec:
+  image:
+    build:
+      dockerfilePath: Dockerfile
+      buildContext: /
+  deployment:
+    instances: 1
+    resource:
+      cpu: 1000
+      memory: 1024
+  runtime:
+    command: ["sh", "-c", "node scripts/migrate.mjs && exec node .output/server/index.mjs"]
+    port: 8080
+    protocol: HTTP
+    healthChecks:
+      - path: /api/health
+        port: 8080
+        interval: 30
+  env:
+    LONG_RUNNING: "1"
+    DEST_FOLDER_NAME: Raw
+    COPY_CONCURRENCY: "5"
+    COPY_DAILY_BUDGET_GB: "600"
+    HOST: 0.0.0.0
+    PORT: "8080"
+    NITRO_HOST: 0.0.0.0
+    NITRO_PORT: "8080"

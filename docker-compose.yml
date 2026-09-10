@@ -1,0 +1,39 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: rawcopy
+      POSTGRES_USER: rawcopy
+      POSTGRES_PASSWORD: rawcopy
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rawcopy"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: postgres://rawcopy:rawcopy@postgres:5432/rawcopy
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-}
+      DEST_FOLDER_NAME: ${DEST_FOLDER_NAME:-Raw}
+      COPY_CONCURRENCY: ${COPY_CONCURRENCY:-5}
+      COPY_DAILY_BUDGET_GB: ${COPY_DAILY_BUDGET_GB:-600}
+      LONG_RUNNING: "1"
+      HOST: 0.0.0.0
+      PORT: "8080"
+      NITRO_HOST: 0.0.0.0
+      NITRO_PORT: "8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata:

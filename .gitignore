@@ -1,0 +1,33 @@
+# dependencies
+node_modules/
+
+# build output
+.output/
+.vercel/
+dist/
+.tanstack/
+*.tsbuildinfo
+
+# local / generated
+.grok/
+artifacts/
+screenshots/
+*.log
+.tmp/
+.node_modules.lock
+
+# secrets — never commit. Copy deploy/env.list into the host env instead.
+.env
+.env.*
+!.env.example
+
+# os / editor
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Grok sandbox chrome (kept locally for the live preview; not part of the app)
+AGENTS.md
+AGENTS.project.md
+startup.sh
